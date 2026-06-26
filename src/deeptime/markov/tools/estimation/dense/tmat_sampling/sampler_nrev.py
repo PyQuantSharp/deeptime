@@ -23,7 +23,7 @@ class SamplerNonRev:
         for i in range(N):
             # only pass positive alphas to dirichlet sampling.
             positive = self.alpha[i, :] > 0
-            self.P[i, positive] = np.random.dirichlet(self.alpha[i, positive])
+            self.P[i, positive] = self.rnd.dirichlet(self.alpha[i, positive])
 
     def sample(self, N=1, return_statdist=False):
         from ....analysis import stationary_distribution
