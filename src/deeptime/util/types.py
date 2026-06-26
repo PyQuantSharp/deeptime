@@ -62,9 +62,12 @@ def atleast_nd(ary, ndim, pos=0):
     the other atleast_*d functions using Python's `functools.partial`
     function. An example is shown below.
     """
-    ary = np.array(ary, copy=False, subok=True)
+    ary = np.asanyarray(ary)
     if ary.ndim:
-        pos = np.normalize_axis_index(pos, ary.ndim + 1)
+        nd = ary.ndim + 1
+        if pos < -nd or pos >= nd:
+            raise np.exceptions.AxisError(pos, nd)
+        pos = pos % nd
     extra = ndim - ary.ndim
     if extra > 0:
         ind = pos * (slice(None),) + extra * (None,) + (Ellipsis,)
