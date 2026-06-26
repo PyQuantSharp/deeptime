@@ -124,3 +124,16 @@ class TestCorrelations(unittest.TestCase):
         result = correlations.time_relaxations_direct(self.T, p0, obs, times)
 
         assert_allclose(expected, result)
+
+    def test_time_relaxations_small_times(self):
+        # regression: when the largest requested time is <= n_states the non-diagonalization
+        # path was taken, where `D` and `use_diagonalization` were previously undefined,
+        # raising a NameError. All times here (<= 10) exercise that path.
+        obs = np.zeros(10)
+        obs[9] = 1
+        p0 = np.zeros(10)
+        p0[0] = 1.
+        times = [1, 2, 3]
+        expected = [correlations.time_relaxation_direct_by_mtx_vec_prod(self.T, p0, obs, t) for t in times]
+        result = correlations.time_relaxations_direct(self.T, p0, obs, times)
+        assert_allclose(expected, result)

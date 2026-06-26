@@ -257,6 +257,8 @@ def time_relaxations_direct(P, p0, obs, times=(1,)):
     times = np.sort(times)
 
     # maximum time > number of rows?
+    use_diagonalization = False
+    f = np.empty(n_t, dtype=P.dtype)
     if times[-1] > P.shape[0]:
         use_diagonalization = True
         R, D, L = rdl_decomposition(P)
@@ -268,8 +270,7 @@ def time_relaxations_direct(P, p0, obs, times=(1,)):
         if not np.any(np.iscomplex(L)):
             L = np.real(L)
         rdl = (R, D, L)
-
-    f = np.empty(n_t, dtype=D.dtype)
+        f = np.empty(n_t, dtype=D.dtype)
 
     if use_diagonalization:
         for i in range(n_t):
