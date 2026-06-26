@@ -1468,7 +1468,7 @@ def eigenvalue_sensitivity(T, k):
     T = ensure_number_array(T, ndim=2)
     if _issparse(T):
         _showSparseConversionWarning()
-        eigenvalue_sensitivity(T.todense(), k)
+        return eigenvalue_sensitivity(T.toarray(), k)
     else:
         return dense.sensitivity.eigenvalue_sensitivity(T, k)
 
@@ -1492,7 +1492,7 @@ def timescale_sensitivity(T, k):
     T = ensure_number_array(T, ndim=2)
     if _issparse(T):
         _showSparseConversionWarning()
-        timescale_sensitivity(T.todense(), k)
+        return timescale_sensitivity(T.toarray(), k)
     else:
         return dense.sensitivity.timescale_sensitivity(T, k)
 
@@ -1520,7 +1520,7 @@ def eigenvector_sensitivity(T, k, j, right=True):
     T = ensure_number_array(T, ndim=2)
     if _issparse(T):
         _showSparseConversionWarning()
-        eigenvector_sensitivity(T.todense(), k, j, right=right)
+        return eigenvector_sensitivity(T.toarray(), k, j, right=right)
     else:
         return dense.sensitivity.eigenvector_sensitivity(T, k, j, right=right)
 
@@ -1547,7 +1547,7 @@ def stationary_distribution_sensitivity(T, j):
     T = ensure_number_array(T, ndim=2)
     if _issparse(T):
         _showSparseConversionWarning()
-        stationary_distribution_sensitivity(T.todense(), j)
+        return stationary_distribution_sensitivity(T.toarray(), j)
     else:
         return dense.sensitivity.stationary_distribution_sensitivity(T, j)
 
@@ -1576,7 +1576,7 @@ def mfpt_sensitivity(T, target, i):
     # go
     if _issparse(T):
         _showSparseConversionWarning()
-        mfpt_sensitivity(T.todense(), target, i)
+        return mfpt_sensitivity(T.toarray(), target, i)
     else:
         return dense.sensitivity.mfpt_sensitivity(T, target, i)
 
@@ -1611,7 +1611,7 @@ def committor_sensitivity(T, A, B, i, forward=True):
     B = ensure_integer_array(B, ndim=1)
     if _issparse(T):
         _showSparseConversionWarning()
-        committor_sensitivity(T.todense(), A, B, i, forward)
+        return committor_sensitivity(T.toarray(), A, B, i, forward)
     else:
         if forward:
             return dense.sensitivity.forward_committor_sensitivity(T, A, B, i)

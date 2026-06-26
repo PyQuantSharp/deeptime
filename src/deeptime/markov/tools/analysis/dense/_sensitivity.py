@@ -46,7 +46,7 @@ def forward_committor_sensitivity(T, A, B, index):
     # for i in xrange(0, m):
     #   for k in xrange(0, len(set_B)):
     #       v[i] = v[i] - K[notAB[i], B[k]]
-    v[:] = v[:] - K[notAB[:], B[:]]
+    v[:] = v[:] - K[numpy.ix_(notAB, set_B)].sum(axis=1)
 
     qI = numpy.linalg.solve(U, v)
 
