@@ -1103,7 +1103,7 @@ def expectation(T, a, mu=None):
     if mu is not None:
         mu = ensure_number_array(mu, ndim=1, size=n)
     # go
-    if not mu:
+    if mu is None:
         mu = stationary_distribution(T)
     return _np.dot(mu, a)
 
