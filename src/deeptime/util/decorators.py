@@ -78,7 +78,7 @@ def handle_deprecated_args(argument_name, replaced_by, msg, **kw):
         warnings.warn(msg, category=DeprecationWarning, stacklevel=2)
         deprecated_arg = kw.pop(argument_name)
         kw[replaced_by] = deprecated_arg
-    return kw.get(replaced_by, None)
+    return kw
 
 
 def deprecated_argument(argument_name, replaced_by, msg):
@@ -101,7 +101,7 @@ def deprecated_argument(argument_name, replaced_by, msg):
     def factory(fn: typing.Callable) -> typing.Callable:
         @functools.wraps(fn)
         def call(*args, **kw):
-            handle_deprecated_args(argument_name, replaced_by, msg, **kw)
+            kw = handle_deprecated_args(argument_name, replaced_by, msg, **kw)
             return fn(*args, **kw)
         return call
     return factory

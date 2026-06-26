@@ -153,3 +153,58 @@ class TestSensitivitiesDense(unittest.TestCase):
         S = 3.0 * self.pS1
         Sn = expectation_sensitivity(self.T4, a)
         assert_allclose(Sn, S)
+
+
+def test_sparse_sensitivity_branches_return_values():
+    # regression: the sparse branches of the *_sensitivity API functions recursed into the
+    # dense implementation but forgot to `return`, so they silently produced None.
+    from scipy.sparse import csr_matrix
+    import warnings
+    T = np.array([[0.8, 0.2], [0.05, 0.95]])
+    Ts = csr_matrix(T)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # sparse-to-dense conversion warning
+        assert_allclose(eigenvalue_sensitivity(Ts, 0), eigenvalue_sensitivity(T, 0))
+        assert_allclose(timescale_sensitivity(Ts, 1), timescale_sensitivity(T, 1))
+        assert_allclose(eigenvector_sensitivity(Ts, 0, 0), eigenvector_sensitivity(T, 0, 0))
+        assert_allclose(stationary_distribution_sensitivity(Ts, 0),
+                        stationary_distribution_sensitivity(T, 0))
+        assert_allclose(mfpt_sensitivity(Ts, 0, 1), mfpt_sensitivity(T, 0, 1))
+        assert_allclose(committor_sensitivity(Ts, [0], [1], 0),
+                        committor_sensitivity(T, [0], [1], 0))
+
+
+def _forward_committor(T, A, B):
+    n = len(T)
+    notAB = np.setdiff1d(np.arange(n), np.union1d(np.unique(A), np.unique(B)), assume_unique=True)
+    setB = np.unique(B)
+    K = T - np.eye(n)
+    qI = np.linalg.solve(K[np.ix_(notAB, notAB)], -K[np.ix_(notAB, setB)].sum(axis=1))
+    q = np.zeros(n)
+    q[setB] = 1.
+    q[notAB] = qI
+    return q
+
+
+def test_forward_committor_sensitivity_multiple_target_states():
+    # regression: for a target set B with more than one state the sensitivity must sum the
+    # contributions over all of B. The previous `K[notAB[:], B[:]]` indexing paired notAB
+    # with B element-wise, raising IndexError (or giving wrong values) whenever |B| != |notAB|.
+    T = np.array([[0.6, 0.1, 0.1, 0.1, 0.1],
+                  [0.1, 0.5, 0.2, 0.1, 0.1],
+                  [0.05, 0.05, 0.7, 0.1, 0.1],
+                  [0.1, 0.1, 0.1, 0.6, 0.1],
+                  [0.1, 0.1, 0.1, 0.1, 0.6]])
+    A, B = [0], [3, 4]
+    n = len(T)
+    eps = 1e-6
+    for index in (1, 2):
+        analytic = committor_sensitivity(T, A, B, index, forward=True)
+        numeric = np.zeros((n, n))
+        for k in range(n):
+            for l in range(n):
+                Tp = T.copy(); Tp[k, l] += eps
+                Tm = T.copy(); Tm[k, l] -= eps
+                numeric[k, l] = (_forward_committor(Tp, A, B)[index]
+                                 - _forward_committor(Tm, A, B)[index]) / (2 * eps)
+        assert_allclose(analytic, numeric, atol=1e-5)

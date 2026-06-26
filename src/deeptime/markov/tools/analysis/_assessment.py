@@ -60,14 +60,18 @@ def is_rate_matrix(K, tol):
     """
     if sparse.issparse(K):
         K = K.tocsr()
-
-    # check rows sum up to zero.
-    row_sum = K.sum(axis=1)
-    sum_eq_zero = np.allclose(row_sum, 0., atol=tol)
-
-    R = K - K.diagonal()
-    if sparse.issparse(R):
-        R = R.values  # extract nonzero entries
+        # check rows sum up to zero.
+        row_sum = np.asarray(K.sum(axis=1)).ravel()
+        sum_eq_zero = np.allclose(row_sum, 0., atol=tol)
+        # off-diagonal elements of a rate matrix must be non-negative; zero out the diagonal first
+        R = (K - sparse.diags(K.diagonal(), format='csr')).data
+    else:
+        # check rows sum up to zero.
+        row_sum = K.sum(axis=1)
+        sum_eq_zero = np.allclose(row_sum, 0., atol=tol)
+        # off-diagonal elements of a rate matrix must be non-negative; zero out the diagonal first
+        R = np.array(K, copy=True)
+        np.fill_diagonal(R, 0.)
     off_diagonal_positive = np.allclose(R, np.abs(R), rtol=0, atol=tol)
 
     return off_diagonal_positive and sum_eq_zero

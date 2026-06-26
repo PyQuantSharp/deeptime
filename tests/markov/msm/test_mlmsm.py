@@ -212,6 +212,22 @@ class TestMSMRevPi(unittest.TestCase):
         with self.assertRaises(ValueError):
             estimate_markov_model(dtraj_invalid, lag=1, statdist=pi)
 
+    def test_mixed_zero_probability_states_rejected(self):
+        # regression for an operator-precedence bug: when a connected set contains BOTH
+        # zero- and positive-probability states the constraint cannot be satisfied and the
+        # set must be rejected. The previous `np.any(pi[symbols]) == 0.` only triggered when
+        # *every* visited state had zero probability, so mixed sets slipped through.
+        # Note: we feed an unrestricted, strongly connected count model directly (no
+        # submodel_largest pre-restriction) so the guard in `_fit_connected` is exercised.
+        counts = np.array([[2., 1., 0.],
+                           [0., 1., 1.],
+                           [1., 0., 1.]])  # 0->1->2->0 cycle: one strongly connected set {0,1,2}
+        count_model = TransitionCountModel(counts)
+        pi = np.array([0.5, 0.0, 0.5])  # state 1 is part of the set but has zero probability
+        est = MaximumLikelihoodMSM(stationary_distribution_constraint=pi)
+        with self.assertRaises(ValueError):
+            est.fit(count_model)
+
 
 class FF:
 

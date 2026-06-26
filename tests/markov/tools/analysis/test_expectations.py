@@ -15,8 +15,25 @@ from numpy.random import choice
 from scipy.linalg import eig
 from scipy.sparse import diags
 
-from deeptime.markov.tools.analysis import expected_counts, expected_counts_stationary
+from deeptime.markov.tools.analysis import expected_counts, expected_counts_stationary, expectation, \
+    stationary_distribution
 from tests.markov.tools.numeric import assert_allclose
+
+
+def test_expectation_default_uses_stationary_distribution():
+    T = np.array([[0.9, 0.1, 0.0], [0.5, 0.0, 0.5], [0.0, 0.1, 0.9]])
+    a = np.array([1.0, 0.0, 1.0])
+    mu = stationary_distribution(T)
+    assert_allclose(expectation(T, a), np.dot(mu, a))
+
+
+def test_expectation_with_explicit_mu():
+    # regression: `if not mu` raised "truth value of an array is ambiguous" whenever a
+    # stationary vector was passed explicitly; it should be honored instead.
+    T = np.array([[0.9, 0.1, 0.0], [0.5, 0.0, 0.5], [0.0, 0.1, 0.9]])
+    a = np.array([1.0, 0.0, 1.0])
+    mu = np.array([0.2, 0.3, 0.5])
+    assert_allclose(expectation(T, a, mu=mu), np.dot(mu, a))
 
 
 ################################################################################

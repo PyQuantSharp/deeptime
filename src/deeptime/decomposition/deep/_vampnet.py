@@ -376,15 +376,17 @@ class VAMPNet(EstimatorTransformer, DLEstimatorMixin):
                  score_method: str = 'VAMP2', score_mode: str = 'regularize', epsilon: float = 1e-6,
                  dtype=np.float32):
         super().__init__()
+        # device and dtype must be set before the lobes, since the lobe setters move the
+        # modules onto self.device and cast them to self.dtype.
+        self.device = device
+        self.dtype = dtype
         self.lobe = lobe
         self.lobe_timelagged = lobe_timelagged
         self.score_method = score_method
         self.score_mode = score_mode
         self._step = 0
         self._epsilon = epsilon
-        self.device = device
         self.learning_rate = learning_rate
-        self.dtype = dtype
         self.setup_optimizer(optimizer, list(self.lobe.parameters()) + list(self.lobe_timelagged.parameters()))
         self._train_scores = []
         self._validation_scores = []

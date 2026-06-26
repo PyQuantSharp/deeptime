@@ -121,6 +121,33 @@ def test_is_rate_matrix_mm1_queue(mm1_queue_rate_matrix):
         assert_allclose(mm1_queue_rate_matrix, K_copy)
 
 
+def test_is_rate_matrix_negative_offdiagonal(sparse_mode):
+    # regression: a matrix whose rows sum to zero but which has a negative off-diagonal
+    # entry is NOT a rate matrix. Previously `R = K - K.diagonal()` broadcast the diagonal
+    # across rows instead of excluding it, so this case was misclassified.
+    Q = np.array([[0.1, -0.3, 0.2],   # row sums to zero, but off-diagonal entry is negative
+                  [0.1, -0.4, 0.3],
+                  [0.25, 0.25, -0.5]])
+    assert_allclose(Q.sum(axis=1), 0., atol=1e-12)
+    if sparse_mode:
+        Q = csr_matrix(Q)
+    assert_(not is_rate_matrix(Q, tol=1e-12))
+
+
+def test_is_rate_matrix_does_not_mutate_input(sparse_mode):
+    Q = np.array([[-0.5, 0.3, 0.2],
+                  [0.1, -0.4, 0.3],
+                  [0.25, 0.25, -0.5]])
+    if sparse_mode:
+        Q = csr_matrix(Q)
+        before = Q.toarray()
+    else:
+        before = Q.copy()
+    assert_(is_rate_matrix(Q, tol=1e-12))
+    after = Q.toarray() if sparse_mode else Q
+    assert_allclose(after, before)
+
+
 def test_random_transition_matrix(sparse_mode):
     if sparse_mode:
         dim = 10000

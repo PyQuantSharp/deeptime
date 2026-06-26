@@ -14,6 +14,22 @@ from scipy.integrate import quad
 
 from deeptime.markov.tools.estimation import sample_tmatrix, tmatrix_sampler
 from deeptime.markov.tools.analysis import is_transition_matrix
+from deeptime.markov.tools.estimation.dense.tmat_sampling.sampler_nrev import SamplerNonRev
+
+
+def test_sampler_nonrev_seed_is_respected():
+    # regression: SamplerNonRev built a seeded RandomState but then sampled from the global
+    # np.random, so the seed was ignored and sampling was not reproducible.
+    Z = np.array([[5., 2., 1.],
+                  [1., 4., 2.],
+                  [2., 1., 6.]])
+    p1 = SamplerNonRev(Z.copy(), seed=42).sample()
+    p2 = SamplerNonRev(Z.copy(), seed=42).sample()
+    np.testing.assert_allclose(p1, p2)
+    assert is_transition_matrix(p1)
+    # a different seed should (with overwhelming probability) give a different sample
+    p3 = SamplerNonRev(Z.copy(), seed=7).sample()
+    assert not np.allclose(p1, p3)
 
 
 class TestTransitionMatrixSampling(unittest.TestCase):

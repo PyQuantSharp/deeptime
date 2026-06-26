@@ -245,7 +245,7 @@ def tv_derivative(xs, ys, u0=None, alpha=10., tol=None, maxit=1000, fd_window_ra
             lhs = lhs.toarray()
         s = _np.linalg.solve(lhs.astype(_np.float64), -g.astype(_np.float64))
 
-        relative_change = _np.linalg.norm(s[0]) / _np.linalg.norm(u)
+        relative_change = _np.linalg.norm(s) / _np.linalg.norm(u)
         #print(f'iteration {ii:4d}: relative change = {relative_change:.3e},'
         #      f' gradient norm = {_np.linalg.norm(g):.3e}')
 

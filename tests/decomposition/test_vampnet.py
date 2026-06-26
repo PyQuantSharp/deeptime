@@ -157,3 +157,15 @@ def test_no_side_effects():
     model2 = net.fit(train_loader, n_epochs=1).fetch_model()
     with torch.no_grad():
         assert_(model1.lobe is not model2.lobe)  # check it is not the same instance
+
+
+@pytest.mark.parametrize("dtype,torch_dtype", [(np.float32, torch.float32), (np.float64, torch.float64)])
+def test_constructor_applies_dtype_to_lobes(dtype, torch_dtype):
+    # regression: the lobes were assigned before self.device/self.dtype, so the lobe setters
+    # cast/moved them using the *default* dtype/device instead of the requested ones. With
+    # dtype=float64 requested, the lobe parameters must already be float64 after construction.
+    lobe = nn.Linear(5, 2)
+    lobe_tl = nn.Linear(5, 2)
+    net = VAMPNet(lobe=lobe, lobe_timelagged=lobe_tl, dtype=dtype)
+    assert_(next(net.lobe.parameters()).dtype == torch_dtype)
+    assert_(next(net.lobe_timelagged.parameters()).dtype == torch_dtype)
