@@ -12,7 +12,27 @@ from numpy.testing import assert_equal
 from scipy.sparse import csr_matrix
 
 from deeptime.markov.tools.flux import pathways
+from deeptime.markov.tools.flux.pathways import find_bottleneck, pathway
 from tests.markov.tools.numeric import assert_allclose
+
+
+def test_find_bottleneck_direct_edge():
+    # regression: when the strongest edge directly connects A and B the early-return branch
+    # was taken. It used `np.array(row[-1], col[-1])` (col[-1] mistaken for a dtype) and
+    # returned a single value while callers unpack three -> crash. It must return a
+    # (b1, b2, residual_network) triple consistent with the other branch.
+    F = np.zeros((4, 4))
+    F[0, 1] = 0.1
+    F[1, 2] = 0.2
+    F[0, 3] = 0.9  # strongest edge, connects A={0} directly to B={3}
+    F = csr_matrix(F)
+    b1, b2, residual = find_bottleneck(F, [0], [3])
+    assert_equal((int(b1), int(b2)), (0, 3))
+    assert residual.nnz == 0  # no edge is stronger than the bottleneck itself
+
+    # the full pathway decomposition must also succeed and recover the direct path
+    path = pathway(F, [0], [3])
+    assert_equal(np.asarray(path), np.array([0, 3]))
 
 
 @pytest.fixture

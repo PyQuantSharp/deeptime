@@ -49,9 +49,11 @@ def find_bottleneck(F, A, B):
     col = col[ind]
 
     """Check if edge with largest conductivity connects A and B"""
-    b = np.array(row[-1], col[-1])
+    b = np.array([row[-1], col[-1]])
     if has_path(b, A, B):
-        return b
+        # the strongest edge already bridges A and B, so it is the bottleneck and
+        # there is no stronger residual sub-network
+        return row[-1], col[-1], coo_matrix((n, n))
     else:
         """Bisection of flux-value array"""
         r = val.size
