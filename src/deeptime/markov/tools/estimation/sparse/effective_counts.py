@@ -189,7 +189,7 @@ def statistical_inefficiencies(dtrajs, lag, C=None, truncate_acf=True, mact=2.0,
         ntf = tempfile.NamedTemporaryFile(delete=False)
         arr = np.memmap(ntf.name, dtype=np.float64, mode='w+', shape=C.nnz)
         #arr[:] = np.nan
-        gen = _arguments_generator(I, J, splitseq, truncate_acf=truncate_acf, mact=truncate_acf,
+        gen = _arguments_generator(I, J, splitseq, truncate_acf=truncate_acf, mact=mact,
                                    array=ntf.name, njobs=n_jobs)
         if callback:
             x = gen.n_blocks()

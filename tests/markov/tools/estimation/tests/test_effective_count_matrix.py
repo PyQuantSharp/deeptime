@@ -71,6 +71,14 @@ class TestEffectiveCountMatrix(unittest.TestCase):
         assert np.array_equal(C.nonzero(), Ceff2.nonzero())
         assert np.all(Ceff2.toarray() <= C.toarray())
 
+    def test_njobs_consistency_nondefault_mact(self):
+        # regression: the parallel path passed mact=truncate_acf (a bool, == 1.0) instead of
+        # mact=mact, so n_jobs>1 silently used a different ACF multiplier than the serial path.
+        # With the default mact=1.0 the bug is invisible; use a non-default mact so it bites.
+        Ceff1 = effective_count_matrix(self.dtraj_long, 10, mact=2.0, n_jobs=1)
+        Ceff2 = effective_count_matrix(self.dtraj_long, 10, mact=2.0, n_jobs=2)
+        np.testing.assert_allclose(Ceff2.toarray(), Ceff1.toarray())
+
     @pytest.mark.skip('need physical cores')
     def test_njobs_speedup(self):
         artificial_dtraj = [np.random.randint(0, 100, size=10000) for _ in range(10)]
