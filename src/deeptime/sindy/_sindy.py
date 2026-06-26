@@ -334,7 +334,7 @@ class SINDy(Estimator):
 
         self.n_input_features_ = x.shape[1]
         x_transformed = self.library.transform(x)
-        self.n_output_features_ = x_transformed[1]
+        self.n_output_features_ = x_transformed.shape[1]
         self.optimizer.fit(x_transformed, x_dot)
         if self.input_features is None:
             self.input_features = [f"x{i}" for i in range(self.n_input_features_)]

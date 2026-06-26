@@ -54,6 +54,17 @@ def test_learned_coefficients(data_lorenz):
     np.testing.assert_almost_equal(true_coef, model_coef, decimal=3)
 
 
+def test_n_output_features(data_lorenz):
+    # regression: n_output_features_ used `x_transformed[1]` (the second row of the feature
+    # matrix) instead of `x_transformed.shape[1]` (the number of library features).
+    x, x_dot, _ = data_lorenz
+    library = PolynomialFeatures(degree=2)
+    est = SINDy(library=library).fit(x, y=x_dot)
+    expected = PolynomialFeatures(degree=2).fit(x).transform(x).shape[1]
+    assert np.isscalar(est.n_output_features_)
+    assert est.n_output_features_ == expected
+
+
 def test_removed_args_error():
     with assert_raises(RuntimeError):
         STLSQ(normalize=True)
