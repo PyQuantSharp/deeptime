@@ -16,3 +16,20 @@ def test_deprecation_warning():
     with pytest.warns(DeprecationWarning):
         function_with_deprecated_args(arg3=5)
     function_with_deprecated_args(arg5=3)
+
+
+@deprecated_argument("lagtime", "blocksize", "lagtime is deprecated and replaced by blocksize")
+def function_only_accepting_replacement(blocksize=None):
+    # deliberately does NOT accept the deprecated `lagtime` kwarg, so the rename must
+    # actually happen for this call to succeed.
+    return blocksize
+
+
+def test_deprecated_argument_is_actually_renamed():
+    # passing the deprecated argument must be forwarded under the new name
+    with pytest.warns(DeprecationWarning):
+        assert function_only_accepting_replacement(lagtime=7) == 7
+    # passing the new name directly still works
+    assert function_only_accepting_replacement(blocksize=3) == 3
+    # passing neither is fine
+    assert function_only_accepting_replacement() is None
